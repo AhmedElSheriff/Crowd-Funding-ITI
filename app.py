@@ -3,20 +3,22 @@ from auth.auth import Auth
 from projects.project import Project
 
 # Select Auth Action
-item = util.select_item(util.auth_menu)
+while True:
+    item = util.select_item(util.auth_menu)
 
-auth = Auth()
+    auth = Auth()
 
-match item['key']:
-    case 1:
-        # Register
-        auth.register()
-    case 2:
-        # Login
-        uid = auth.login()
-    case 3:
-        # Exit
-        quit()
+    match item['key']:
+        case 1:
+            # Register
+            auth.register()
+        case 2:
+            # Login
+            uid = auth.login()
+            break
+        case 3:
+            # Exit
+            quit()
 
 # Move to next stage
 
