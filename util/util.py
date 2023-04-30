@@ -1,5 +1,4 @@
 import os
-from projects.project import Project as project
 
 if(not os.path.exists("data")):
     os.mkdir('data')
@@ -35,9 +34,10 @@ def save_file(file_name, data, flag='auth'):
         else:
             f.write(data)
         f.close()
-        print('Data Saved Successfully')
+        return True
     except Exception as e:
         print(f"Error: {e}")
+        return False
 
 if(not os.path.exists("data/projects/.schema")):
         data = "pid:uid:title:details:target:start_time:end_time"
@@ -68,7 +68,9 @@ def convert_tuple_to_dict(tup):
         data[index+1] = i
     return data
 
-
-
-
-    
+def print_data_in_table(columns, *args):
+    import tabulate
+    table = [columns]
+    for arg in args:
+        table.append(arg[0])
+    print(tabulate.tabulate(table, headers='firstrow', tablefmt='fancy_grid'))

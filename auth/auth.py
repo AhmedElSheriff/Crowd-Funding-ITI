@@ -1,6 +1,8 @@
 from util import util
+from util.validation import Validation
+from util.colorprint import ColorPrint as colorPrint
+
 class Auth:
-    UID = 0
     def __init__(self):
         self.first_name = ''
         self.last_name = ''
@@ -8,6 +10,7 @@ class Auth:
         self.password = ''
         self.confirm_password = ''
         self.mobile = ''
+    
 
     register_fillable = (
             'first_name', 'last_name', 'email', 'password', 'confirm_password', 'mobile'
@@ -15,37 +18,29 @@ class Auth:
     login_fillable = (
             'email', 'password'
         )   
-
+    
     # Validations
-    @staticmethod
-    def validate_name(name):
-        if(not name.isalpha()):
-            return False
-        return True
-    @staticmethod
-    def validate_email(email):
-        import re
-        email_regex = "^[A-Za-z0-9]+@[A-Za-z0-9]+\.[A-Za-z]+[0-9]*$"
-        if(re.search(email_regex, email)):
-            return True
-        else:
-            return False
     def validate_password(self, password):
         if(password == self.password):
             return True
         else:
             return False
-    @staticmethod
-    def validate_mobile(mobile):
-        import re
-        mobile_regex = "^01[0125][0-9]{8}$"
-        if(re.search(mobile_regex, mobile)):
-            return True
+        
+    def validate_email(self, email):
+        validate = Validation(email)
+        if(validate.is_valid_email()):
+            if(self.email_exists(email)):
+                colorPrint.print("\nEmail Already Exists, Please use a different email\n", 'error')
+                return False
+            else:
+                return True
         else:
-            return False  
+            colorPrint.print("\nInvalid Email Format\n", 'error')
+            return False
+
     def validate_login(self):
         try:
-            f = open("data/auth", "r")
+            f = open("data/.auth", "r")
             for line in f.readlines():
                 e = line.strip('\n').split(':')[3]
                 p = line.strip('\n').split(':')[4]
@@ -55,23 +50,26 @@ class Auth:
             return False
         except:
             return False
+    
+    # Helpers 
     @staticmethod
     def get_last_uid():
         import os
         try:
-            if(os.stat("data/auth").st_size == 0):
+            if(os.stat("data/.auth").st_size == 0):
                 # Empty file
                 return 0
-            f = open("data/auth", "r")
+            f = open("data/.auth", "r")
             return f.readlines()[-1].strip('\n').split(':')[0]
         except:
             return 0
+        
     @staticmethod
     def email_exists(email):
         import os
-        if(not os.path.exists("data/auth")):
+        if(not os.path.exists("data/.auth")):
             return False
-        f = open("data/auth", "r")
+        f = open("data/.auth", "r")
         for line in f.readlines():
             e = line.strip('\n').split(':')[3]
             if(email == e):
@@ -84,28 +82,24 @@ class Auth:
                 n = input(f'Type your {field}: ')
                 match field:
                     case 'first_name':
-                        validated = self.validate_name(n)
-                        if(not validated):
-                            print(f"{field} must be a valid name")
+                        validate = Validation(n)
+                        if(not validate.is_valid_string()):
+                            colorPrint.print("\nInput must only contain Alphabet\n", 'error')
                             continue
                         self.first_name = n
                         break
                     case 'last_name':
-                        validated = self.validate_name(n)
-                        if(not validated):
-                            print(f"{field} must be a valid name")
+                        validate = Validation(n)
+                        if(not validate.is_valid_string()):
+                            colorPrint.print("\nInput must only contain Alphabet\n", 'error')
                             continue
                         self.last_name = n
                         break
                     case 'email':
-                        validated = self.validate_email(n)
+                        validated = self.validate_email(n.lower())
                         if(not validated):
-                            print(f"{field} must be a valid email")
                             continue
-                        if(self.email_exists(n)):
-                            print("Email must be unique")
-                            continue
-                        self.email = n
+                        self.email = n.lower()
                         break
                     case 'password':
                         self.password = n
@@ -113,21 +107,26 @@ class Auth:
                     case 'confirm_password':
                         validated = self.validate_password(n)
                         if(not validated):
-                            print(f"{field} must match the password")
+                            colorPrint.print("\nConfirm password must match the password\n", 'error')
                             continue
                         self.confirm_password = n
                         break
                     case 'mobile':
-                        validated = self.validate_mobile(n)
-                        if(not validated):
-                            print(f"{field} must be a valid egyptian mobile number")
+                        validate = Validation(n)
+                        if(not validate.is_valid_mobile()):
+                            colorPrint.print("\nMobile number must be a valid egyptian mobile number\n", 'error')
                             continue
                         self.mobile = n
                         break
         else:
             uid = self.get_last_uid()
-            data = f"{int(uid)+1}:{self.first_name}:{self.last_name}:{self.email}:{self.password}:{self.mobile}"
-            util.save_file("auth", data)
+            import hashlib
+            hashed_pass = hashlib.md5(n.encode()).hexdigest()
+            data = f"{int(uid)+1}:{self.first_name}:{self.last_name}:{self.email}:{hashed_pass}:{self.mobile}"
+            if(util.save_file(".auth", data)):
+                colorPrint.print("\nRegistered Successfully\n", 'success')
+            else:
+                colorPrint.print("\nFailed to Register\n", 'error')
 
     def login(self):
         for field in self.login_fillable:
@@ -135,21 +134,23 @@ class Auth:
                 n = input(f'Type your {field}: ')
                 match field:
                     case 'email':
-                        validated = self.validate_email(n)
-                        if(not validated):
-                            print(f"{field} must be a valid email")
+                        validate = Validation(n)
+                        if(not validate.is_valid_email()):
+                            colorPrint.print("\nInvalid Email Format\n", 'error')
                             continue
-                        self.email = n
+                        self.email = n.lower()
                         break
                     case 'password':
-                        self.password = n
+                        import hashlib
+                        hashed_pass = hashlib.md5(n.encode()).hexdigest()
+                        self.password = hashed_pass
                         break
 
         uid = self.validate_login()
         if(not uid):
-            print("Incorrect Email or Password")
+            colorPrint.print("\nIncorrect Email or Password\n", 'error')
             return False
         else:
-            print("Logged In")
+            colorPrint.print("\nLogged In\n", 'success')
             return uid
                     
