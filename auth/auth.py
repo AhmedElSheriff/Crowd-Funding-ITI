@@ -121,7 +121,7 @@ class Auth:
         else:
             uid = self.get_last_uid()
             import hashlib
-            hashed_pass = hashlib.md5(n.encode()).hexdigest()
+            hashed_pass = hashlib.md5(self.password.encode()).hexdigest()
             data = f"{int(uid)+1}:{self.first_name}:{self.last_name}:{self.email}:{hashed_pass}:{self.mobile}"
             if(util.save_file(".auth", data)):
                 colorPrint.print("\nRegistered Successfully\n", 'success')
