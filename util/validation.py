@@ -44,11 +44,19 @@ class Validation:
         else:
             return True
         
-    def is_valid_datetime(date_time):
+    def is_valid_datetime(self):
         import datetime
         try:
-            date =  datetime.datetime.strptime(date_time, '%Y-%m-%d %H:%M')
+            date =  datetime.datetime.strptime(self.value, '%d/%m/%Y %H-%M')
             return True
         except Exception as e:
-            print("Invalid Format, correct format is YYYY-MM-DD H:M")
+            print(e)
+            return False
+        
+    def is_valid_date(self):
+        import datetime
+        try:
+            date =  datetime.datetime.strptime(self.value, '%d/%m/%Y')
+            return True
+        except Exception as e:
             return False

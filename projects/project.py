@@ -13,6 +13,8 @@ class Project:
         self.end_time = ''
         self.uid = uid
         self.pid = ''
+        self.start_date = ''
+        self.end_date = ''
 
     project_fillable = (
             'title', 'details', 'target', 'start_time', 'end_time'
@@ -33,8 +35,20 @@ class Project:
             else:
                 return True
         else:
+            colorPrint.print("\nInvalid Format, correct format is DD/MM/YYYY H-M\n", 'error')
             return False
         
+    def validate_end_date(self, date):
+        validate = Validation(date)
+        if(validate.is_valid_date()):
+            if(self.start_date > date):
+                colorPrint.print("\nEnd date can NOT be before start date\n", 'error')
+                return False
+            else:
+                return True
+        else:
+            colorPrint.print("\nInvalid Format, correct format is DD/MM/YYYY H-M\n", 'error')
+            return False
     # Helpers
 
     @staticmethod
@@ -142,14 +156,13 @@ class Project:
                     case 'start_time':
                         validate = Validation(n)
                         if(not validate.is_valid_datetime()):
-                            colorPrint.print("\nInvalid Format, correct format is YYYY-MM-DD H:M\n", 'error')
+                            colorPrint.print("\nInvalid Format, correct format is DD/MM/YYYY H-M\n", 'error')
                             continue
                         self.start_time = n
-                        continue
+                        break
                     case 'end_time':
                         validated = self.validate_end_time(n)
                         if(not validated):
-                            colorPrint.print("\nInvalid Format, correct format is YYYY-MM-DD H:M\n", 'error')
                             continue
                         self.end_time = n
                         break
@@ -158,7 +171,7 @@ class Project:
             data = f"{pid}:{self.uid}:{self.title}:{self.details}:{self.target}:{self.start_time}:{self.end_time}"
             if(util.save_file("projects/"+str(pid), data, 'project')):
                 colorPrint.print("\nProject Created Successfully\n", 'success')
-                self.update_last_pid(pid)
+                self.update_last_pid()
             else:
                 colorPrint.print("\nFailed to Create Project\n", 'error')
             
@@ -175,6 +188,7 @@ class Project:
                 #Insert creator first name and last name
                 arr_item.insert(2, str(user_object[1]) + " " + str(user_object[2]))
                 arr.append(arr_item)
+                f.close()
         if(len(arr) < 1):
             colorPrint.print("\nThere are no projects to show\n", 'info')
         else:
@@ -194,6 +208,7 @@ class Project:
                     #Insert creator first name and last name
                     arr_item.insert(2, str(user_object[1]) + " " + str(user_object[2]))
                     arr.append(arr_item)
+                f.close()
         if(len(arr) < 1):
             colorPrint.print("\nYou currently don't have any projects to show\n", 'info')
         else:
@@ -257,3 +272,50 @@ class Project:
                         break
             except ValueError as e:
                 colorPrint.print(f"\nPlease enter a valid number {e}\n", 'error')
+
+    def filter_result(self):
+        from datetime import datetime
+        arr = []
+        for file in os.listdir('data/projects'):
+            if(re.match(r"^[0-9]$", file)):
+                f = open("data/projects/"+file, "r")
+                arr_item = f.readline().strip('\n').split(':')
+                data = self.serialize_project(arr_item)
+                project_start_date = datetime.strptime(data['start_time'][:data['start_time'].index(' ')], '%d/%m/%Y')
+                filter_start_date = datetime.strptime(self.start_date, '%d/%m/%Y')
+                filter_end_date = datetime.strptime(self.end_date, '%d/%m/%Y')
+                if(filter_start_date <= project_start_date and filter_end_date >= project_start_date):
+                    #Remove Details from project
+                    del arr_item[3]
+                    user_object = self.get_user_by_id(data['uid']).split(':')
+                    #Insert creator first name and last name
+                    arr_item.insert(2, str(user_object[1]) + " " + str(user_object[2]))
+                    arr.append(arr_item)
+                f.close()
+        if(len(arr) < 1):
+            colorPrint.print("\nNo data matches your criteria\n", 'info')
+        else:
+            util.print_data_in_table(self.project_columns, arr)
+
+    def filter(self):
+        item = util.select_item(util.project_filter_menu)
+        match item['key']:
+            case 1:
+                # Filter By Date
+                while True:
+                    n = input("Enter Start Date: ")
+                    validate = Validation(n)
+                    if(not validate.is_valid_date()):
+                        colorPrint.print("\nInvalid Format, correct format is DD/MM/YYYY\n", 'error')
+                        continue
+                    self.start_date = n
+                    break
+                    
+                while True:
+                    n = input("Enter End Date: ")
+                    validated = self.validate_end_date(n)
+                    if(not validated):
+                        continue
+                    self.end_date = n
+                    break
+                self.filter_result()

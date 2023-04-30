@@ -17,13 +17,18 @@ projects_menu = {
     2: 'View All Projects',
     3: 'View Own Projects',
     4: 'Open Project',
-    5: 'Exit'
+    5: 'Filter',
+    6: 'Exit'
 }
 
 project_action_menu = {
     1: 'Update',
     2: 'Delete',
     3: 'Back'
+}
+
+project_filter_menu = {
+    1: 'Filter By Date'
 }
 
 def save_file(file_name, data, flag='auth'):
@@ -47,7 +52,7 @@ if(not os.path.exists("data/projects/.schema")):
         f.close()
 
 def select_item(menu):
-    print("------------- Select Action From the Menu -------------")
+    print("\n------------- Select Action From the Menu -------------")
     for key in menu.keys():
         print(key, '-', menu[key])
     
@@ -68,9 +73,9 @@ def convert_tuple_to_dict(tup):
         data[index+1] = i
     return data
 
-def print_data_in_table(columns, *args):
+def print_data_in_table(columns, arr):
     import tabulate
     table = [columns]
-    for arg in args:
-        table.append(arg[0])
+    for arg in arr:
+        table.append(arg)
     print(tabulate.tabulate(table, headers='firstrow', tablefmt='fancy_grid'))

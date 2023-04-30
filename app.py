@@ -43,5 +43,9 @@ if(uid):
                 # Open
                 project.open()
             case 5:
+                # Filter
+                project.filter()
+                pass
+            case 6:
                 # Exit
                 quit()

@@ -14,6 +14,7 @@ _The aim of this project is to test my basic Python knowledge to create a consol
 * Search in files
 * Custom print class
 * Print data in tables
+* Filter data based on criteria
 
 ## Dependencies
 
