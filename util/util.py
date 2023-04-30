@@ -33,23 +33,21 @@ project_filter_menu = {
 
 def save_file(file_name, data, flag='auth'):
     try:
-        f = open("data/"+file_name, "a")
-        if(flag == 'auth'):
-            f.write(data+"\n")
-        else:
-            f.write(data)
-        f.close()
-        return True
+        with open("data/"+file_name, "a") as f:
+            if(flag == 'auth'):
+                f.write(data+"\n")
+            else:
+                f.write(data)
+            return True
     except Exception as e:
         print(f"Error: {e}")
         return False
 
 if(not os.path.exists("data/projects/.schema")):
         data = "pid:uid:title:details:target:start_time:end_time"
-        f = open("data/projects/.schema", "a")
-        f.write(data)
-        f.write("\n0")
-        f.close()
+        with open("data/projects/.schema", "a") as f:
+            f.write(data)
+            f.write("\n0")
 
 def select_item(menu):
     print("\n------------- Select Action From the Menu -------------")

@@ -17,7 +17,10 @@ class Auth:
         )   
     login_fillable = (
             'email', 'password'
-        )   
+        ) 
+    auth_columns = (
+        'uid', 'first_name', 'last_name', 'email', 'password', 'mobile'
+    )  
     
     # Validations
     def validate_password(self, password):
@@ -40,14 +43,14 @@ class Auth:
 
     def validate_login(self):
         try:
-            f = open("data/.auth", "r")
-            for line in f.readlines():
-                e = line.strip('\n').split(':')[3]
-                p = line.strip('\n').split(':')[4]
-                uid = line.strip('\n').split(':')[0]
-                if(e == self.email and p == self.password):
-                    return uid
-            return False
+            with open("data/.auth", "r") as f:
+                for line in f.readlines():
+                    e = line.strip('\n').split(':')[3]
+                    p = line.strip('\n').split(':')[4]
+                    uid = line.strip('\n').split(':')[0]
+                    if(e == self.email and p == self.password):
+                        return uid
+                return False
         except:
             return False
     
@@ -59,8 +62,8 @@ class Auth:
             if(os.stat("data/.auth").st_size == 0):
                 # Empty file
                 return 0
-            f = open("data/.auth", "r")
-            return f.readlines()[-1].strip('\n').split(':')[0]
+            with open("data/.auth", "r") as f:
+                return f.readlines()[-1].strip('\n').split(':')[0]
         except:
             return 0
         
@@ -69,12 +72,12 @@ class Auth:
         import os
         if(not os.path.exists("data/.auth")):
             return False
-        f = open("data/.auth", "r")
-        for line in f.readlines():
-            e = line.strip('\n').split(':')[3]
-            if(email == e):
-                return True
-        return False
+        with open("data/.auth", "r") as f:
+            for line in f.readlines():
+                e = line.strip('\n').split(':')[3]
+                if(email == e):
+                    return True
+            return False
     
     def register(self):
         for field in self.register_fillable:
